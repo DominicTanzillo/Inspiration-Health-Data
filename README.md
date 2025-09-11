@@ -1,12 +1,14 @@
 # Inspiration-Health-Data
 510-First-Project
-
 ## Team
 ### Students
 Dominic Tanzillo
 Mrinal Goel
 ### Professor
 Brinnae Bent, PhD
+
+### Original Data Source
+Chris Mason, PhD, and Eliah Overbey, PhD in Conjuction with NASA and SpaceX
 
 ## Project Overview
 
@@ -19,14 +21,31 @@ We began with data from NASA's Inspiration4 Mission: A 3-Day Trip Circulating Ar
 Description:
 > The SpaceX Inspiration4 mission was a 3-day mission with four private astronauts to low Earth orbit that occurred in September 2021. The crew collected biospecimen samples before, during, and after flight. One of these biospecimen collections included whole blood collected via venipuncture, with serum extracted from blood using a serum separator tube (SST). Samples were collected pre-flight (L-92, L-44, L-3) and post-flight (R+1, R+45, R+82). Serum samples were submitted for immune and cardiovascular cytokine biomarker profiling panels at two different companies (Eve Technologies and Alamar), and to Quest Diagnostics for comprehensive metabolic panel testing. Data was used to measure changes in cytokines and metabolic measures during spaceflight. This study derives results from the Comprehensive Metabolic Panel and Multiplex assays, and the blood serum data in this study are related to other studies using data from the same experiment; OSD-569 (whole blood), OSD-570 (peripheral blood mononuclear cells), OSD-571 (plasma), OSD-572 (skin, oral, and nasal swabs), OSD-573 (Dragon capsule samples), OSD-574 (skin biopsy), OSD-656 (urine), and OSD-630 (stool).
 
-Database available [here](https://osdr.nasa.gov/bio/repo/data/studies/OSD-575):
+##### Study Citation
+>Mason CE, Overbey EG, Grigorev K, Nelson TM. "SpaceX Inspiration4 Blood Serum Metabolic Panel and Immune/Cardiac Cytokine Arrays (Comprehensive Metabolic Panel and Multiplex)", NASA Open Science Data Repository, Version 3, http://doi.org/10.26030/mc5d-p710
+
+Raw data set available from NASA's Gene Lab [here](https://osdr.nasa.gov/bio/repo/data/studies/OSD-575).
 
 ### Project Scope
 We focused on the Comprehensive Metabolic Panel (CMP) and Cardiovascular Serum Proteins. These are related to baseline astronaut health in response to microgravity and we can model the health trajectories over time.
 
-Participant size is limited at N=4. Interestingly, we have two male and two female subjects and so we can compare across the sexes.
+Participant size is limited at $n=4$. Interestingly, we have two male and two female subjects and so we can compare across the sexes.
 
 ## Project Architecture
+
+### Requirements
+See [enviornment.yml](environment.yml)
+
+## Project Pipeline
+For this project, there are Submitted and Transformed Datasets. We began with the transformed datasets as they provided better visibility for preprocessing.
+
+### Preprocessing
+### EDA
+### Feature Manipulation
+
+## Outputs
+### Social Media
+### Graphs
 
 
 ---
@@ -89,3 +108,12 @@ Blog: “Greener for Some: Who Has Access to Urban Green Space in U.S. Cities?�
 Video: “Why Are Some Intersections So Dangerous? A Look at Traffic Fatalities”
 Podcast: “Food Deserts: Data vs. Reality”
 Infographic: “What Public Salary Data Tells Us About Pay Gaps by Gender”
+
+---
+
+Updating the yaml
+
+```
+conda install <package>
+conda env export --from-history > environment.yml
+```
