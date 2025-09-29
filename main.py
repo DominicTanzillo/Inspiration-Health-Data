@@ -44,7 +44,7 @@ def run_pipeline(filename, folder="final_data",
         fig = make_figure(
             tidy_df=tidy_df,
             stats_df=stats_df,
-            analytes=[analyte],  # single analyte at a time
+            analytes=[analyte],
             astronaut_filter=astronauts,
             show_error=show_error
         )
@@ -61,12 +61,12 @@ if __name__ == "__main__":
     for i, f in enumerate(files):
         print(f"  [{i}] {f}")
 
-    # --- Choose dataset ---
+    # Choose dataset
     idx = input(f"Select dataset [0-{len(files)-1}] (default=0): ").strip()
     idx = int(idx) if idx.isdigit() and 0 <= int(idx) < len(files) else 0
     filename = files[idx]
 
-    # --- Choose analytes ---
+    # Choose analytes
     df_preview = pd.read_csv(os.path.join("final_data", filename))
     df_preview = add_flight_day(df_preview)
     tidy_preview = tidy_from_wide(df_preview)
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     ana_in = input("Enter analytes (comma-separated, default=sodium): ").strip().lower()
     analytes = [a.strip() for a in ana_in.split(",") if a.strip()] if ana_in else ["sodium"]
 
-    # --- Choose participants (All / Male / Female / Subset) ---
-    available_astronauts = tidy_preview["astronautID"].unique().tolist()
+    # Choose participants (All / Male / Female / Subset)
+    available_astronauts = [a.upper() for a in tidy_preview["astronautID"].unique().tolist()]
     print("\nAvailable astronauts:", ", ".join(available_astronauts))
     print("Options: 'All', 'Male', 'Female', or a comma-separated subset (e.g. C001,C002)")
     choice = input("Select group (default=All): ").strip()
@@ -87,13 +87,13 @@ if __name__ == "__main__":
     elif choice.lower() in ["male", "female"]:
         astronauts = choice.capitalize()
     else:
-        astronauts = [c.strip() for c in choice.split(",") if c.strip()]
+        astronauts = [c.strip().upper() for c in choice.split(",") if c.strip()]
 
-    # --- Choose error band type ---
+    # Choose error band type
     err_in = input("Show error band? [none/within/group] (default=none): ").strip().lower()
     show_error = {"none": None, "within": "within", "group": "group"}.get(err_in, None)
 
-    # --- Run pipeline ---
+    # Run pipeline
     run_pipeline(filename, analytes=analytes,
                  astronauts=astronauts,
                  show_error=show_error)

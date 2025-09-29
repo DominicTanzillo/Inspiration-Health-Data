@@ -154,11 +154,12 @@ def analyze_r1_vs_L(tidy: pd.DataFrame) -> pd.DataFrame:
                 n_L = int(L_vals.shape[0])
 
                 if std_L > 0:
-                    t_stat = (mean_L - R1) / (std_L / np.sqrt(n_L))
+                    se = std_L / np.sqrt(n_L)
+                    t_stat = (mean_L - R1) / se
                     p_val = 2 * (1 - stats.t.cdf(abs(t_stat), df=n_L - 1))
                     cohen_d = (R1 - mean_L) / std_L
                 else:
-                    t_stat = p_val = cohen_d = np.nan
+                    se = t_stat = p_val = cohen_d = np.nan
 
                 results.append({
                     "analyte": analyte,
@@ -167,6 +168,8 @@ def analyze_r1_vs_L(tidy: pd.DataFrame) -> pd.DataFrame:
                     "n_L": n_L,
                     "mean_L": round(mean_L, 2),
                     "R1": round(R1, 2),
+                    "std_L": round(std_L, 2),
+                    "se_L": round(se, 2) if pd.notna(se) else np.nan,
                     "t_stat": round(t_stat, 3) if pd.notna(t_stat) else np.nan,
                     "p_value": round(p_val, 4) if pd.notna(p_val) else np.nan,
                     "effect_size": round(cohen_d, 3) if pd.notna(cohen_d) else np.nan,

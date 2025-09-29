@@ -1,4 +1,5 @@
 import plotly.graph_objects as go
+import plotly.express as px
 import numpy as np
 import pandas as pd
 
@@ -49,26 +50,85 @@ def make_figure(
         else:
             y_label = analyte.title()
 
+        ## Plot each astronaut trace - first colors
+        palette = px.colors.qualitative.Set2
+        astronaut_colors = {astr: palette[i % len(palette)]
+                            for i, astr in enumerate(subdf["astronautID"].unique())}
+
         ## Plot each astronaut trace
         for astronaut, adf in subdf.groupby("astronautID"):
             if adf.empty:
                 continue
             adf = adf.sort_values("flight_day")
+            base_color = astronaut_colors[astronaut]
+
+            ### Skip if astronaut not in filter
+            if isinstance(astronaut_filter, (list, tuple, set)) and astronaut not in astronaut_filter:
+                continue
+
+            # Main Scatter Plot
             fig.add_trace(go.Scatter(
                 x=adf["flight_day"],
                 y=adf["value"],
                 mode="lines+markers",
                 name=f"{astronaut} ({analyte})",
                 hovertext=adf["timepoint"],
-                hovertemplate="Day %{hovertext}<br>Value %{y}<extra></extra>"
+                hovertemplate="Day %{hovertext}<br>Value %{y}<extra></extra>",
+                line=dict(color=base_color),
+                marker=dict(color=base_color)
             ))
 
-        ## Error band overlay
-        if show_error is not None and not stats_df.empty:
+            ### Within-astronaut error band
+            if show_error == "within" and not stats_df.empty:
+                stat_rows = stats_df[
+                    (stats_df["analyte"] == analyte)
+                    & (stats_df["test_type"] == "within")
+                    ]
+
+                for _, row in stat_rows.iterrows():
+                    astronaut = row["astronautID"]
+                    if astronaut not in subdf["astronautID"].unique():
+                        continue  # skip astronauts not in this analyte subset
+
+                    mean_L = row.get("mean_L", np.nan)
+                    se = row.get("se_L", np.nan)
+                    R1 = row.get("R1", np.nan)
+
+                    if pd.isna(mean_L) or pd.isna(se):
+                        continue
+
+                    base_color = astronaut_colors.get(astronaut, "gray")
+                    if base_color.startswith("rgb"):
+                        fill_color = base_color.replace("rgb", "rgba").replace(")", ",0.15)")
+                    else:
+                        fill_color = base_color
+
+                    #### Horizontal band: L +/- SE
+                    fig.add_hrect(
+                        y0=mean_L - se, y1=mean_L + se,
+                        fillcolor=fill_color,
+                        opacity=0.2,
+                        line_width=0,
+                        layer="below"
+                    )
+
+                    #### Asterisk if R+1 outside band
+                    if pd.notna(R1) and (R1 < mean_L - se or R1 > mean_L + se):
+                        fig.add_annotation(
+                            x=31,
+                            y=R1,
+                            text="*",
+                            showarrow=False,
+                            font=dict(size=20, color="red"),
+                            yshift=15
+                        )
+
+        ## Group-level error band
+        if show_error == "group" and not stats_df.empty:
             stat_rows = stats_df[
                 (stats_df["analyte"] == analyte)
-                & (stats_df["test_type"] == show_error)
-            ]
+                & (stats_df["test_type"] == "group")
+                ]
 
             for _, row in stat_rows.iterrows():
                 mean_L = row.get("mean_L", np.nan)
@@ -77,28 +137,37 @@ def make_figure(
                 error = np.nan
                 if pd.notna(row.get("effect_size")) and n > 1 and row["effect_size"] != 0:
                     error = abs(row.get("R1", np.nan) - mean_L) / abs(row["effect_size"])
-
                 if pd.isna(error):
                     error = 0
 
-                if pd.notna(mean_L):
+                #### Filter bands only if stats_df has group info
+                should_plot = True
+                if "group" in row.index and astronaut_filter is not None:
+                    group_id = row["group"]
+
+                    if isinstance(astronaut_filter, str) and astronaut_filter in ["Male", "Female"]:
+                        should_plot = (group_id == astronaut_filter)
+                    elif isinstance(astronaut_filter, (list, tuple, set)):
+                        # Only show if group_id matches one of the selected astronauts
+                        should_plot = (group_id in astronaut_filter)
+
+                if should_plot and pd.notna(mean_L):
                     fig.add_hrect(
                         y0=mean_L - error, y1=mean_L + error,
                         fillcolor="gray", opacity=0.2,
                         layer="below", line_width=0,
-                        annotation_text=f"{show_error} band",
                         annotation_position="top left"
                     )
 
-                if row.get("p_value") is not None and row["p_value"] < 0.05:
-                    fig.add_annotation(
-                        x=31,  # R+1 = 31
-                        y=row.get("R1", mean_L),
-                        text="*",
-                        showarrow=False,
-                        font=dict(size=20, color="red"),
-                        yshift=15
-                    )
+                    if row.get("p_value") is not None and row["p_value"] < 0.05:
+                        fig.add_annotation(
+                            x=31,  # R+1 = 31
+                            y=row.get("R1", mean_L),
+                            text="*",
+                            showarrow=False,
+                            font=dict(size=20, color="red"),
+                            yshift=15
+                        )
 
         ## Only update range if ref_min/ref_max are valid
         if pd.notna(ref_min) and pd.notna(ref_max):
