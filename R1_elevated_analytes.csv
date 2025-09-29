@@ -1,0 +1,10 @@
+astronautID,analyte,label,unit,mean_L,R1,p_value,effect_size
+C004,alkaline_phosphatase,Alkaline Phosphatase,U/L,56.33,62.0,0.0234,3.71
+C003,alt,ALT,U/L,12.67,19.0,0.0028,10.97
+C004,alt,ALT,U/L,36.33,40.0,0.0315,3.175
+C004,chloride,Cl⁻,mmol/L,102.67,105.0,0.0198,4.041
+C003,egfr_african_american,eGFR (AA),mL/min/1.73m²,84.33,102.0,0.017,4.371
+C003,egfr_non_african_american,eGFR (non-AA),mL/min/1.73m²,72.67,88.0,0.017,4.366
+C003,glucose,Glucose,mg/dL,71.33,103.0,0.0213,3.888
+C002,urea_nitrogen_bun,BUN,mg/dL,15.67,20.0,0.039,2.837
+C004,urea_nitrogen_bun,BUN,mg/dL,20.0,26.0,0.0267,3.464

@@ -1,9 +1,0 @@
-name: Inspiration-Health-Data
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - python=3.12
-  - matplotlib
-  - plotly=6.3.0
-prefix: /opt/miniconda3/envs/Inspiration-Health-Data
