@@ -133,8 +133,9 @@ def analyze_r1_vs_L(tidy: pd.DataFrame) -> pd.DataFrame:
     """
     Compare R+1 vs L-series for each analyte.
     - Within-astronaut: one-sample t-test (H0: mean(L) == R+1)
-    - Across-astronauts: paired t-test on per-astronaut mean(L) vs R+1
-    Returns a summary dataframe with p-values and effect sizes.
+      Returns per-astronaut mean, std, SE, t-stat, p-value, and Cohen's d.
+    - Across-astronauts (group-level): paired t-test on per-astronaut mean(L) vs R+1
+      Returns group mean, std across astronauts, SEM, t-stat, p-value, and Cohen's d.
     """
     results = []
     for analyte, subdf in tidy.groupby("analyte"):
@@ -191,6 +192,11 @@ def analyze_r1_vs_L(tidy: pd.DataFrame) -> pd.DataFrame:
         if len(astronaut_means) >= 2:
             diffs = np.array(astronaut_R1) - np.array(astronaut_means)
             t_stat, p_val = stats.ttest_rel(astronaut_R1, astronaut_means)
+
+            # Group-level variability
+            std_L = np.std(astronaut_means, ddof=1)
+            se_L = std_L / np.sqrt(len(astronaut_means))
+
             cohen_d = diffs.mean() / diffs.std(ddof=1) if diffs.std(ddof=1) > 0 else np.nan
 
             results.append({

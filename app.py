@@ -43,10 +43,11 @@ def main():
     # 4. Sidebar user selections
     st.sidebar.header("Plot Controls")
 
-    analytes = st.sidebar.multiselect(
-        "Select Analytes",
+    analyte = st.sidebar.selectbox(
+        "Select Analyte",
         options=tidy_df["analyte"].unique().tolist(),
-        default=["sodium"]
+        index=tidy_df["analyte"].unique().tolist().index("sodium")
+        if "sodium" in tidy_df["analyte"].unique() else 0
     )
 
     astronauts = st.sidebar.multiselect(
@@ -79,11 +80,11 @@ def main():
         astronaut_filter = None
 
     # 5. Generate figure
-    if analytes:
+    if analyte:
         fig = make_figure(
             tidy_df=tidy_df,
             stats_df=stats_df,
-            analytes=analytes,
+            analytes=[analyte],
             astronaut_filter=astronaut_filter,
             show_error=show_error
         )

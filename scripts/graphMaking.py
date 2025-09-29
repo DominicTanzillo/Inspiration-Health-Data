@@ -44,11 +44,49 @@ def make_figure(
         ## Y-axis scaling
         ref_min = subdf["min"].dropna().min()
         ref_max = subdf["max"].dropna().max()
+        data_min = subdf["value"].min()
+        data_max = subdf["value"].max()
+
         if "unit" in subdf.columns and not subdf["unit"].dropna().empty:
             unit = subdf["unit"].dropna().iloc[0]
             y_label = f"{analyte.title()} ({unit})"
         else:
             y_label = analyte.title()
+
+        ## Add healthy range lines from min / max
+        if pd.notna(ref_min):
+            fig.add_hline(
+                y=ref_min,
+                line=dict(color="green", width=2, dash="dot"),
+                annotation_text="Min",
+                annotation_position="bottom right"
+            )
+        if pd.notna(ref_max):
+            fig.add_hline(
+                y=ref_max,
+                line=dict(color="green", width=2, dash="dot"),
+                annotation_text="Max",
+                annotation_position="top right"
+            )
+
+        ## Decide axis limits: must include BOTH healthy range and all data
+        low_candidates = [v for v in [ref_min, data_min] if pd.notna(v)]
+        high_candidates = [v for v in [ref_max, data_max] if pd.notna(v)]
+
+        if low_candidates and high_candidates:
+            low = min(low_candidates)
+            high = max(high_candidates)
+            span = high - low if high > low else 1
+            padding = 0.1 * span
+            y_range = [low - padding, high + padding]
+        else:
+            y_range = None
+
+        ## Apply axis update once
+        if y_range:
+            fig.update_yaxes(title=y_label, range=y_range)
+        else:
+            fig.update_yaxes(title=y_label)
 
         ## Plot each astronaut trace - first colors
         palette = px.colors.qualitative.Set2
@@ -156,6 +194,7 @@ def make_figure(
                         y0=mean_L - error, y1=mean_L + error,
                         fillcolor="gray", opacity=0.2,
                         layer="below", line_width=0,
+                        annotation_text = "Group Error Band",
                         annotation_position="top left"
                     )
 
