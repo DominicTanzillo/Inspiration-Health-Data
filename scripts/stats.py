@@ -6,6 +6,7 @@ from .featureEngineering import parse_timepoint
 # Map analyte base names to human labels + units + reference ranges
 ## To get sub and superscripts in Markdown I used ChatGPT: https://chatgpt.com/share/68d9c8f6-2674-8008-8ff7-0731bec9ad49
 ANALYTE_INFO = {
+    #Blood Chemistry
     "albumin": {"label": "Albumin", "unit": "g/dL"},
     "alkaline_phosphatase": {"label": "Alkaline Phosphatase", "unit": "U/L"},
     "alt": {"label": "ALT", "unit": "U/L"},
@@ -25,7 +26,6 @@ ANALYTE_INFO = {
     "sodium": {"label": "Na⁺", "unit": "mmol/L"},
     "urea_nitrogen_bun": {"label": "BUN", "unit": "mg/dL"},
 
-
     # Derived feature
     "anion_gap": {
         "label": "Anion Gap",
@@ -33,6 +33,18 @@ ANALYTE_INFO = {
         "min": 8,   # manual reference range
         "max": 24
     },
+
+    ## cardiovascular
+    ## Cardiovascular
+    "a2_macroglobulin": {"label": "α₂-Macroglobulin", "unit": "ng/mL"},
+    "agp": {"label": "AGP (α1-acid glycoprotein)", "unit": "ng/mL"},
+    "crp": {"label": "CRP (C-reactive protein)", "unit": "pg/mL"},
+    "fetuin_a36": {"label": "Fetuin A3/6", "unit": "ng/mL"},
+    "fibrinogen": {"label": "Fibrinogen", "unit": "ng/mL"},
+    "haptoglobin": {"label": "Haptoglobin", "unit": "ng/mL"},
+    "l_selectin": {"label": "L-Selectin", "unit": "pg/mL"},
+    "pf4": {"label": "Platelet Factor 4", "unit": "ng/mL"},
+    "sap": {"label": "SAP (Serum Amyloid P)", "unit": "pg/mL"},
 }
 
 # Helpers to find columns by prefix (robust to unit suffixes)
@@ -53,15 +65,16 @@ def _first_col_startswith(df: pd.DataFrame, prefixes) -> str | None:
 
 def _value_min_max_cols(df: pd.DataFrame, analyte: str):
     """
-    For a given base analyte name, return (value_col, min_col, max_col) using flexible prefixes.
-    Works with columns like:
-      - "<analyte>_value_*"
-      - "<analyte>_range_min_*" or "<analyte>_min_*"
-      - "<analyte>_range_max_*" or "<analyte>_max_*"
+    For a given base analyte name, return (value_col, min_col, max_col).
+    Works with clinical chemistry (…_value) and cardiovascular (…_concentration / …_percent).
     """
     v = _first_col_startswith(df, f"{analyte}_value")
+    if v is None:
+        v = _first_col_startswith(df, f"{analyte}_concentration")
+
     mn = _first_col_startswith(df, [f"{analyte}_range_min", f"{analyte}_min"])
     mx = _first_col_startswith(df, [f"{analyte}_range_max", f"{analyte}_max"])
+
     return v, mn, mx
 
 # Tidy Transformation
@@ -73,56 +86,34 @@ def tidy_from_wide(df: pd.DataFrame) -> pd.DataFrame:
     """
     tidy_records = []
 
-    ## Standard analytes ##
+    # normalize lookup for id/timepoint columns
+    colmap = {c.lower(): c for c in df.columns}
+    astronaut_col = colmap.get("astronautid")
+    timepoint_col = colmap.get("timepoint")
+
+    if astronaut_col is None or timepoint_col is None:
+        raise KeyError("Expected astronautID and timepoint columns in input CSV")
+
     for analyte, meta in ANALYTE_INFO.items():
         if analyte == "anion_gap":
-            # handled below in derived block
             continue
 
         value_col, min_col, max_col = _value_min_max_cols(df, analyte)
         if value_col is None:
-            continue  # analyte not present in this dataset
+            continue
 
         for _, row in df.iterrows():
-            astronaut = row["astronautID"]
             rec = {
-                "astronautID": astronaut,
-                "timepoint": row["timepoint"],
-                "flight_day": parse_timepoint(row["timepoint"]),
+                "astronautID": row[astronaut_col],
+                "timepoint": row[timepoint_col],
+                "flight_day": parse_timepoint(row[timepoint_col]),
                 "analyte": analyte,
                 "value": row[value_col],
-                "min": (row[min_col] if (min_col and pd.notna(row.get(min_col))) else meta.get("min")),
-                "max": (row[max_col] if (max_col and pd.notna(row.get(max_col))) else meta.get("max")),
+                "min": (row[min_col] if (min_col and pd.notna(row[min_col])) else meta.get("min")),
+                "max": (row[max_col] if (max_col and pd.notna(row[max_col])) else meta.get("max")),
                 "label": meta["label"],
                 "unit": meta["unit"],
-                "sex": "Male" if astronaut in ["C001", "C004"] else "Female",
-            }
-            tidy_records.append(rec)
-
-    # Derived analyte: Anion Gap (Sodium - Chlorine - Carbon Dioxide)
-    na_col  = _first_col_startswith(df, "sodium_value")
-    cl_col  = _first_col_startswith(df, "chloride_value")
-    co2_col = _first_col_startswith(df, "carbon_dioxide_value")
-    if all([na_col, cl_col, co2_col]):
-        for _, row in df.iterrows():
-            astronaut = row["astronautID"]
-            try:
-                val = float(row[na_col]) - float(row[cl_col]) - float(row[co2_col])
-                val = round(val, 1)  # tenths place
-            except Exception:
-                val = np.nan
-
-            rec = {
-                "astronautID": astronaut,
-                "timepoint": row["timepoint"],
-                "flight_day": parse_timepoint(row["timepoint"]),
-                "analyte": "anion_gap",
-                "value": val,
-                "min": ANALYTE_INFO["anion_gap"]["min"],
-                "max": ANALYTE_INFO["anion_gap"]["max"],
-                "label": ANALYTE_INFO["anion_gap"]["label"],
-                "unit": ANALYTE_INFO["anion_gap"]["unit"],
-                "sex": "Male" if astronaut in ["C001", "C004"] else "Female",
+                "sex": "Male" if str(row[astronaut_col]) in ["C001", "C004"] else "Female",
             }
             tidy_records.append(rec)
 
