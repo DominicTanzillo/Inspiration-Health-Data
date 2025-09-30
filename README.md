@@ -80,7 +80,7 @@ streamlit==1.38.0
 
 ### Project Pipeline  
 1. **Preprocessing**: Cleaned NASA-transformed datasets for astronaut biomarkers. 
-2. **Exploratory Data Analysis**: Considered Relevant Features to Emphasis and Tunnel in On
+2. **Exploratory Data Analysis**: Considered Relevant Features to Emphasize and Tunnel in On
 2. **Feature Engineering**: Added derived measures (e.g., Anion Gap, flight-day indexing). Considered relevant statistics and how to display. 
 3. **Tidy Conversion**: Wide to tidy long format with `tidy_from_wide()`.  
 4. **Statistical Analysis**: Within-astronaut and group comparisons with SciPy.  
@@ -105,12 +105,13 @@ streamlit run app.py --server.port=8501 --server.address=0.0.0.0
 ## Key-Take Aways
 ### Lessons Learned
 * SciPy wheels: Latest releases may not build on Hugging Face so we pinned to 1.12.0.
-* NumPy conflicts: Cutting-edge versions caused dependency clashes. Stable pinning solved it.
-* Repo layout: Keeping app.py at root simplified imports and Docker path issues.
-* Data availability: Committed final_data/ into repo so app always finds CSVs.
+* NumPy conflicts: Cutting-edge versions caused dependency clashes. 
+* Repo layout: Keeping app.py at root simplified imports and Docker path issues.Stable pinning solved it.
+* Data availability: Committed final_data/ into repo so app always finds CSVs. Hugging Face is really particular!
 
 ### Outputs
 
 * Interactive Dashboard: [Hugging Face Space visualizing astronaut biochemistry across mission days.](https://huggingface.co/spaces/DTanzillo/Inspiration-Health-Data)
 * Graphs: Plotly charts with selectable analytes, astronauts, error bands, and reference ranges.
 * Data Storytelling Deliverables: README,[Write-Up](writeup.ipynb), class presentation.
+* Blog Post: [On Substack](https://open.substack.com/pub/dominictanzillo/p/an-application-to-visual-astronaut?r=1ucxnk&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true)
