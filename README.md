@@ -1,10 +1,9 @@
 # Inspiration-Health-Data  
 510-First-Project  
-
 ## Team  
 ### Students  
+- Mrinal Goel
 - Dominic Tanzillo  
-- Mrinal Goel  
 
 ### Professor  
 - Brinnae Bent, PhD  
@@ -17,27 +16,22 @@ Chris Mason, PhD, and Eliah Overbey, PhD in conjunction with NASA and SpaceX
 ## Project Overview  
 
 ### Data  
-We began with data from NASA's **Inspiration4 Mission: A 3-Day Trip Circulating Around Earth in Microgravity**.  
+We worked with open-source data from NASA’s Inspiration4 Mission, a 3-day flight in September 2021 that sent four private astronauts into low Earth orbit.  
 
-> *SpaceX Inspiration4 Blood Serum Metabolic Panel and Immune/Cardiac Cytokine Arrays (Comprehensive Metabolic Panel and Multiplex) Study*  
+Blood samples were collected before, during, and after flight (L-92, L-44, L-3; R+1, R+45, R+82). Serum was separated and sent for immune and cardiovascular cytokine panels (Eve Technologies, Alamar) and comprehensive metabolic testing (Quest Diagnostics). These data capture how cytokines and metabolic measures shift during spaceflight.  
 
-#### NASA Open-Source Database  
-The SpaceX Inspiration4 mission was a 3-day mission with four private astronauts to low Earth orbit that occurred in September 2021. The crew collected biospecimen samples before, during, and after flight. One of these biospecimen collections included whole blood collected via venipuncture, with serum extracted from blood using a serum separator tube (SST). Samples were collected pre-flight (L-92, L-44, L-3) and post-flight (R+1, R+45, R+82).  
-
-Serum samples were submitted for immune and cardiovascular cytokine biomarker profiling panels at two different companies (Eve Technologies and Alamar), and to Quest Diagnostics for comprehensive metabolic panel testing. Data was used to measure changes in cytokines and metabolic measures during spaceflight.  
-
-##### Study Citation  
+Citation  
 Mason CE, Overbey EG, Grigorev K, Nelson TM.  
-*"SpaceX Inspiration4 Blood Serum Metabolic Panel and Immune/Cardiac Cytokine Arrays (Comprehensive Metabolic Panel and Multiplex)",* NASA Open Science Data Repository, Version 3, [DOI link](http://doi.org/10.26030/mc5d-p710)  
+> "SpaceX Inspiration4 Blood Serum Metabolic Panel and Immune/Cardiac Cytokine Arrays (Comprehensive Metabolic Panel and Multiplex)," NASA Open Science Data Repository, Version 3. [DOI link](http://doi.org/10.26030/mc5d-p710)  
 
-Raw dataset available from NASA's Gene Lab [here](https://osdr.nasa.gov/bio/repo/data/studies/OSD-575).  
+Raw datasets available at [NASA GeneLab](https://osdr.nasa.gov/bio/repo/data/studies/OSD-575).  
 
----
+---  
 
 ### Project Scope  
-We focused on the **Comprehensive Metabolic Panel (CMP)** and **Cardiovascular Serum Proteins**. These are related to baseline astronaut health in response to microgravity, and we can model the health trajectories over time.  
+We focused on the Comprehensive Metabolic Panel (CMP) and Cardiovascular Serum Proteins as markers of astronaut health under microgravity.  
 
-Participant size is limited at *n=4*. Importantly, we have two male and two female subjects, allowing comparison across sexes.  
+The sample size is small (n=4), but balanced: two men and two women, enabling basic sex-based comparisons. 
 
 ---
 
@@ -48,70 +42,59 @@ After iterating through multiple deployment issues, the repo was organized as:
 
 ```
 .
-├── app.py                   # main app entrypoint
-├── scripts/                 # core analysis modules
-│   ├── featureEngineering.py
-│   ├── stats.py
-│   └── graphMaking.py
-├── data/                    # raw NASA datasets (original form)
-│   ├── raw_serum.csv
-│   └── raw_cardiovascular.csv
-├── cleaned_data/            # datasets after EDA + preprocessing
-│   ├── serum_cleaned.csv
-│   └── cardiovascular_cleaned.csv
-├── final_data/              # tidy, analysis-ready CSVs used in the app
-│   ├── serum_cardiovascular.csv
-│   └── clinical_chemistry.csv
-├── requirements.txt         # Python dependencies
-├── Dockerfile               # containerized build for Hugging Face
-└── README.md
-```
-
-### Requirements  
-We locked to stable, compatible versions to avoid conflicts on Hugging Face:  
+├── app.py                   # Main app entrypoint (runs the web/app interface)
+├── main.py                  # Command-line entrypoint for running the pipeline
+├── preprocessing.py         # Preprocessing script to clean raw data before analysis
+├── scripts/                 # Core analysis modules
+│   ├── featureEngineering.py # Functions to create derived features from cleaned data
+│   ├── stats.py              # Statistical analysis methods and calculations
+│   └── graphMaking.py        # Visualization utilities for data and results
+├── data/                    # Raw input datasets (CSV files directly from source)
+│   └── *.csv
+├── cleaned_data/            # Outputs after preprocessing (ready for feature engineering)
+│   └── *.csv
+├── final_data/              # Tidy, analysis-ready datasets for the app or reporting
+│   └── *.csv
+├── writeup.ipynb            # Supplementary documentation and narrative analysis (notebooks)
+├── README.md                # Project summary, setup instructions, and usage guide
+├── requirements.txt         # Python dependencies for reproducibility
+├── Dockerfile               # Container setup for deployment on Hugging Face
 
 ```
-numpy==1.26.4
-pandas==2.2.2
-scipy==1.12.0
-plotly==5.24.1
-streamlit==1.38.0
-```
+Please note that this tree was generated via ChatGPT: [prompt](https://chatgpt.com/share/68db83d2-e904-8008-8226-3137ff231942)
 
 ### Project Pipeline  
-1. **Preprocessing**: Cleaned NASA-transformed datasets for astronaut biomarkers. 
-2. **Exploratory Data Analysis**: Considered Relevant Features to Emphasize and Tunnel in On
-2. **Feature Engineering**: Added derived measures (e.g., Anion Gap, flight-day indexing). Considered relevant statistics and how to display. 
-3. **Tidy Conversion**: Wide to tidy long format with `tidy_from_wide()`.  
-4. **Statistical Analysis**: Within-astronaut and group comparisons with SciPy.  
-5. **Visualization**: Interactive Plotly charts embedded in Streamlit dashboard.  
+1. Preprocessing: Cleaned and organized astronaut biomarker datasets  
+2. Exploration: Identified key features and focused on the most informative biomarkers  
+3. Feature engineering: Created new measures (e.g., Anion Gap) and aligned data on a flight-day timeline  
+4. Reshaping: Converted data into tidy format for easier analysis and plotting  
+5. Statistics: Ran within-astronaut and group-level tests  
+6. Visualization: Built interactive charts and deployed them in a Streamlit app  
 
----
+### Deployment to Hugging Face  
 
-## Deployment to Hugging Face  
+The interactive dashboard is deployed on Hugging Face: [Inspiration-Health-Data](https://huggingface.co/spaces/DTanzillo/Inspiration-Health-Data)  
 
-Hugging Face Interactable [Available Here](https://huggingface.co/spaces/DTanzillo/Inspiration-Health-Data)
-
-We initially tried the **Streamlit SDK**, then switched to **Docker** for full control on Hugging Face. To Run Locally:
+To run locally:
 
 ```
 streamlit run app.py --server.port=8501 --server.address=0.0.0.0
 ```
 
-## Full write-up for this project:
+## Full write-up for this project's process and to try it yourself:
 
-[Write-U](writeup.ipynb)
+[Write-Up](writeup.ipynb) in Jupyter Notebook. Template curtesy of Duke's AIPI Progam's 520 Class (Originally, this was used for a bike share project)
 
 ## Key-Take Aways
-### Lessons Learned
+### Lessons Learned for Building Projects
 * SciPy wheels: Latest releases may not build on Hugging Face so we pinned to 1.12.0.
 * NumPy conflicts: Cutting-edge versions caused dependency clashes. 
-* Repo layout: Keeping app.py at root simplified imports and Docker path issues.Stable pinning solved it.
+* Repo layout: Keeping app.py at root simplified imports and Docker path issues. Stable pinning solved it.
 * Data availability: Committed final_data/ into repo so app always finds CSVs. Hugging Face is really particular!
 
-### Outputs
+### Final Outputs
 
 * Interactive Dashboard: [Hugging Face Space visualizing astronaut biochemistry across mission days.](https://huggingface.co/spaces/DTanzillo/Inspiration-Health-Data)
 * Graphs: Plotly charts with selectable analytes, astronauts, error bands, and reference ranges.
-* Data Storytelling Deliverables: README,[Write-Up](writeup.ipynb), class presentation.
+* Data Storytelling Deliverables: README, [Write-Up](writeup.ipynb), class presentation.
 * Blog Post: [On Substack](https://open.substack.com/pub/dominictanzillo/p/an-application-to-visual-astronaut?r=1ucxnk&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true)
